@@ -29,7 +29,37 @@ def get_seo_prompt(content_type, input_data, competitor_data):
     """
 
 def generate_ai_content(api_key, prompt):
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    response = model.generate_content(prompt)
-    return response.text
+    try:
+        genai.configure(api_key=api_key)
+        
+        # --- SMART DISCOVERY LOGIC START ---
+        # Sabhi available models ki list nikalna
+        available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+        
+        # Best model chunne ki priority list
+        priority_models = [
+            'models/gemini-1.5-pro',
+            'models/gemini-1.5-flash',
+            'models/gemini-pro'
+        ]
+        
+        selected_model = None
+        for target in priority_models:
+            if target in available_models:
+                selected_model = target
+                break
+        
+        # Agar koi priority model nahi mila, toh pehla available model le lo
+        if not selected_model and available_models:
+            selected_model = available_models[0]
+            
+        if not selected_model:
+            return "AI Generation Error: No suitable Gemini model found for this API Key."
+        # --- SMART DISCOVERY LOGIC END ---
+
+        model = genai.GenerativeModel(selected_model)
+        response = model.generate_content(prompt)
+        return response.text
+
+    except Exception as e:
+        return f"AI Generation Error: {e}"
