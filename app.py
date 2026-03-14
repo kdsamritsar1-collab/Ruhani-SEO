@@ -30,38 +30,17 @@ if st.button("Generate Strategy"):
         st.error(f"Secrets not found in Streamlit Cloud! Error: {e}")
         st.stop()
 
-    with st.spinner("Analyzing Market & Creating Content..."):
-        # 1. Research Competitors
+  # app.py mein badlav
+with st.spinner("Analyzing Market & Creating Content..."):
+    try:
         comp_tags = lm.get_competitor_insights(yt_key, user_input[:50])
-        
-        # 2. Generate AI Content
         prompt = lm.get_seo_prompt("Devotional", user_input, comp_tags)
         ai_result = lm.generate_ai_content(gemini_key, prompt)
         
-        st.success("Ready!")
-        
-        # --- Results Layout ---
-        col1, col2 = st.columns([2, 1])
-        
-        with col1:
-            st.markdown("### 📋 Optimized Metadata")
-            st.markdown(ai_result)
-            
-            # Sync Button inside result
-            if st.button("🚀 Sync to Google Sheet"):
-                row = [str(datetime.now()), user_input[:100], ai_result]
-                status = sh.push_to_sheet(sheet_name, row)
-                if status == True:
-                    st.balloons()
-                    st.success("Data added to Google Sheets!")
-                else:
-                    st.error(f"Sync failed: {status}")
-        
-        with col2:
-            st.subheader("🖼️ YouTube Preview")
-            st.markdown(f"""
-            <div style="background-color:#000; padding:20px; border-radius:10px; border: 2px solid #FF0000; text-align:center;">
-                <h2 style="color:white; font-size:22px;">{user_input[:25].upper()}</h2>
-                <p style="color:#AAA;">Ikjot Ruhani Records</p>
-            </div>
-            """, unsafe_allow_html=True)
+        if "AI Generation Error" in ai_result:
+            st.error(ai_result)
+        else:
+            st.success("Ready!")
+            # ... baaki code
+    except Exception as e:
+        st.error(f"An unexpected error occurred: {e}")
